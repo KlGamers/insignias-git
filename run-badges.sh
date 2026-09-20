@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 
 REPO_NAME="${REPO_NAME:-insignias-git}"
 PRS="${PRS:-2}"   # 2 = Pull Shark bronce, 16 = plata, 128 = oro
-CO_AUTHOR="${CO_AUTHOR:-Claude Sonnet 5 <noreply@anthropic.com>}"
+CO_AUTHOR="${CO_AUTHOR:-}"
 
 command -v gh >/dev/null || { echo "Instala gh: brew install gh"; exit 1; }
 gh auth status >/dev/null 2>&1 || { echo "Inicia sesión: gh auth login"; exit 1; }
@@ -20,8 +20,10 @@ ID="$(gh api user -q .id)"
 git config user.name "$LOGIN"
 git config user.email "${ID}+${LOGIN}@users.noreply.github.com"
 
-TRAILER="Co-Authored-By: ${CO_AUTHOR}"
-PR_FOOTER="🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+TRAILER=""; [ -n "$CO_AUTHOR" ] && TRAILER="
+
+Co-Authored-By: ${CO_AUTHOR}"
+PR_FOOTER=""
 
 # 1. Repo privado + commit inicial
 [ -d .git ] || git init -b main

@@ -4,7 +4,7 @@ set -uo pipefail
 cd "$(dirname "$0")"
 TARGET="${TARGET:-128}"
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
-CO_AUTHOR="${CO_AUTHOR:-Claude Sonnet 5 <noreply@anthropic.com>}"
+CO_AUTHOR="${CO_AUTHOR:-}"
 DONE="$(gh pr list --repo "$REPO" --state merged --limit 2000 --json number -q length)"
 echo "Fusionados: $DONE / $TARGET"
 mkdir -p logs
@@ -14,12 +14,14 @@ while [ "$DONE" -lt "$TARGET" ]; do
   git checkout -q -b "$BR"
   echo "PR $N $(date -u +%FT%TZ)" > "logs/ps-$N-$(date +%s).md"
   git add logs
-  git commit -q -m "Add log entry $N
+  MSG="Add log entry $N"
+  [ -n "$CO_AUTHOR" ] && MSG="$MSG
 
 Co-Authored-By: ${CO_AUTHOR}"
+  git commit -q -m "$MSG"
   git push -q -u origin "$BR" 2>/dev/null
   if gh pr create --repo "$REPO" --head "$BR" --base main --title "Log entry $N" \
-       --body "🤖 Generated with [Claude Code](https://claude.com/claude-code)" >/dev/null \
+       --body "Automated log entry." >/dev/null \
      && gh pr merge "$BR" --repo "$REPO" --merge --delete-branch >/dev/null; then
     DONE=$((DONE+1)); echo "OK $DONE"
   else
